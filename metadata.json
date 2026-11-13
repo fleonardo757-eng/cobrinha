@@ -1,0 +1,6 @@
+{
+  "name": "Cobrinha — Jogo Clássico com Níveis e Ranking",
+  "description": "Jogo da Cobrinha em HTML5 Canvas, CSS e JavaScript puro com 5 níveis progressivos, obstáculos, controles por teclado e toque e ranking salvo no navegador.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

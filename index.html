@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cobrinha — Jogo Clássico com Níveis e Ranking</title>
+    <meta
+      name="description"
+      content="Jogo da Cobrinha em HTML5 Canvas, CSS e JavaScript puro com 5 níveis progressivos, obstáculos, controles por teclado e toque e ranking salvo no navegador."
+    />
+    <meta property="og:title" content="Cobrinha — Jogo Clássico com Níveis e Ranking" />
+    <meta
+      property="og:description"
+      content="Jogo da Cobrinha em HTML5 Canvas, CSS e JavaScript puro com 5 níveis progressivos, obstáculos e ranking local."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Outfit:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="topbar-brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <h1 class="brand-title">Cobrinha</h1>
+        </div>
+        <p class="topbar-meta">5 Níveis Progressivos · Ranking Local</p>
+      </header>
+
+      <main class="workspace">
+        <!-- Coluna Principal: HUD, Arena Canvas e Controles -->
+        <section class="arena-column" aria-label="Área do jogo">
+          <div class="hud-panel">
+            <div class="hud-metrics">
+              <div class="metric">
+                <span class="metric-label">Jogador</span>
+                <span class="metric-value metric-player" id="hud-player">—</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Pontuação</span>
+                <span class="metric-value tabular" id="hud-score">0</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Nível</span>
+                <span class="metric-value tabular" id="hud-level">1 / 5</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Meta</span>
+                <span class="metric-value tabular" id="hud-target">50 pts</span>
+              </div>
+            </div>
+
+            <div class="hud-actions">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                id="btn-pause"
+                disabled
+                aria-label="Pausar ou continuar o jogo"
+              >
+                Pausar
+              </button>
+              <button
+                type="button"
+                class="btn btn-ghost"
+                id="btn-restart"
+                disabled
+                aria-label="Reiniciar partida"
+              >
+                Reiniciar
+              </button>
+            </div>
+          </div>
+
+          <div class="progress-track" aria-hidden="true">
+            <div class="progress-fill" id="level-progress-fill"></div>
+          </div>
+
+          <div class="board-stage" id="board-stage">
+            <canvas
+              id="game-canvas"
+              width="520"
+              height="520"
+              aria-label="Tabuleiro do jogo da Cobrinha"
+            ></canvas>
+
+            <!-- Aviso discreto ao subir de nível -->
+            <div class="level-toast" id="level-toast" role="status" aria-live="polite" hidden>
+              <span class="level-toast-title" id="level-toast-title">Nível 2</span>
+              <span class="level-toast-desc" id="level-toast-desc">Mais velocidade e obstáculos</span>
+            </div>
+
+            <!-- Tela Inicial -->
+            <div class="stage-overlay" id="overlay-start">
+              <div class="overlay-card">
+                <h2 class="overlay-title">Pronto para jogar?</h2>
+                <p class="overlay-subtitle">
+                  Colete as frutas, desvie das paredes e obstáculos e avance pelos 5 níveis.
+                </p>
+
+                <form id="start-form" class="start-form" novalidate>
+                  <label class="field-label" for="player-name-input">Seu nome para o ranking</label>
+                  <input
+                    id="player-name-input"
+                    class="text-input"
+                    type="text"
+                    maxlength="20"
+                    placeholder="Digite seu nome..."
+                    autocomplete="nickname"
+                    required
+                  />
+                  <p class="field-error" id="name-error" role="alert" hidden>
+                    Por favor, digite seu nome antes de começar.
+                  </p>
+
+                  <button type="submit" class="btn btn-primary btn-block" id="btn-start">
+                    Iniciar Jogo
+                  </button>
+                </form>
+
+                <p class="overlay-hint">
+                  Use as setas do teclado (ou WASD) e Espaço para pausar. No celular, deslize na tela ou use os botões abaixo.
+                </p>
+              </div>
+            </div>
+
+            <!-- Tela de Pausa -->
+            <div class="stage-overlay" id="overlay-pause" hidden>
+              <div class="overlay-card">
+                <h2 class="overlay-title">Jogo Pausado</h2>
+                <p class="overlay-subtitle">
+                  Pressione Espaço ou clique em Continuar quando estiver pronto.
+                </p>
+                <div class="overlay-actions">
+                  <button type="button" class="btn btn-primary" id="btn-resume">
+                    Continuar
+                  </button>
+                  <button type="button" class="btn btn-secondary" id="btn-pause-restart">
+                    Reiniciar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tela de Fim de Jogo -->
+            <div class="stage-overlay" id="overlay-gameover" hidden>
+              <div class="overlay-card">
+                <h2 class="overlay-title">Fim de Jogo</h2>
+                <p class="overlay-subtitle" id="gameover-reason">Você colidiu com a parede.</p>
+
+                <div class="summary-grid">
+                  <div class="summary-item">
+                    <span class="summary-label">Pontuação</span>
+                    <strong class="summary-value tabular" id="final-score">0</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Nível</span>
+                    <strong class="summary-value tabular" id="final-level">1 / 5</strong>
+                  </div>
+                  <div class="summary-item">
+                    <span class="summary-label">Melhor</span>
+                    <strong class="summary-value tabular" id="final-best">0</strong>
+                  </div>
+                </div>
+
+                <div class="overlay-actions">
+                  <button type="button" class="btn btn-primary" id="btn-play-again">
+                    Jogar Novamente
+                  </button>
+                  <button type="button" class="btn btn-secondary" id="btn-change-player">
+                    Trocar Jogador
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controles na tela (Toque e clique) -->
+          <div class="touch-controls" aria-label="Controles direcionais">
+            <div class="dpad" role="group" aria-label="Direções">
+              <button
+                type="button"
+                class="dpad-btn dpad-up"
+                data-dir="UP"
+                aria-label="Mover para cima"
+              >
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="dpad-btn dpad-left"
+                data-dir="LEFT"
+                aria-label="Mover para a esquerda"
+              >
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="dpad-btn dpad-down"
+                data-dir="DOWN"
+                aria-label="Mover para baixo"
+              >
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="dpad-btn dpad-right"
+                data-dir="RIGHT"
+                aria-label="Mover para a direita"
+              >
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Coluna Lateral: Ranking e Níveis -->
+        <aside class="side-column" aria-label="Ranking e progressão de níveis">
+          <section class="panel ranking-panel">
+            <div class="panel-header">
+              <h2 class="panel-title">Ranking</h2>
+              <button
+                type="button"
+                class="link-btn"
+                id="btn-clear-ranking"
+                hidden
+              >
+                Limpar histórico
+              </button>
+            </div>
+
+            <div class="ranking-empty" id="ranking-empty">
+              Nenhuma partida registrada ainda. Complete uma rodada para aparecer no topo.
+            </div>
+
+            <div class="ranking-table-wrap" id="ranking-table-wrap" hidden>
+              <table class="ranking-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Jogador</th>
+                    <th>Nível</th>
+                    <th class="num-col">Pontos</th>
+                    <th class="date-col">Data</th>
+                  </tr>
+                </thead>
+                <tbody id="ranking-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel levels-panel">
+            <div class="panel-header">
+              <h2 class="panel-title">Progressão dos Níveis</h2>
+            </div>
+            <ol class="levels-list" id="levels-list"></ol>
+          </section>
+        </aside>
+      </main>
+
+      <footer class="footer">
+        <p class="creator-credit">Criado por [Seu Nome]</p>
+        <p class="footer-note">Setas ou deslize para mover · Espaço para pausar</p>
+      </footer>
+    </div>
+
+    <script type="module" src="script.js"></script>
+  </body>
+</html>

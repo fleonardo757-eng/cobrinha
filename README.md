@@ -1,11 +1,35 @@
-<div align="center">
+# Cobrinha — Jogo Clássico com Níveis e Ranking
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+Jogo da Cobrinha desenvolvido com **HTML5 Canvas**, **CSS** e **JavaScript puro**, sem dependências externas ou backend. Inclui 5 níveis com dificuldade progressiva, obstáculos, controles por teclado e toque e ranking persistido no `localStorage`.
 
-  <h1>Built with AI Studio</h2>
+## Estrutura do Projeto
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+- `index.html` — Estrutura da página, tabuleiro `<canvas>`, telas de início/pausa/fim de jogo e ranking.
+- `style.css` — Layout responsivo para computador e celular.
+- `script.js` — Lógica do jogo, progressão dos 5 níveis, colisões, controles e persistência no `localStorage`.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+> **Dica:** Antes de publicar, edite a linha `Criado por [Seu Nome]` no arquivo `index.html` com o seu nome.
 
-</div>
+## Como rodar localmente
+
+Por utilizar módulos JavaScript nativos (`type="module"`), execute com um servidor estático simples na pasta do projeto:
+
+```bash
+npx serve .
+```
+
+Ou usando Python:
+
+```bash
+python3 -m http.server 8080
+```
+
+Depois acesse `http://localhost:8080` (ou a URL exibida no terminal). Também funciona com a extensão **Live Server** do VS Code.
+
+## Como publicar na Vercel
+
+1. Envie os arquivos (`index.html`, `style.css`, `script.js` e `README.md`) para um repositório no **GitHub**.
+2. Acesse [vercel.com](https://vercel.com) e clique em **Add New Project**.
+3. Importe o repositório do GitHub.
+4. Em **Framework Preset**, selecione **Other** (sem comando de build e com diretório de saída `.`).
+5. Clique em **Deploy**. O site ficará no ar em segundos.
